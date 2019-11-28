@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>three-p2</title>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+            position: relative;
+        }
+        #atom{
+            margin-right: 0;
+            margin-left: auto;
+            width: calc(100% - 420px);
+        }
+        .app{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 400px;
+            height: 100%;
+            border: solid 10px black;
+            background-color: #fff;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="atom"></div>
+    <div class="app">
+        <h1>Three.js</h1>
+    </div>
+
+
+    <!-- Three.js 引入 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/107/three.min.js"></script>
+    <!-- 控制旋轉攝影機 js -->
+    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r92/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script>
+        //渲染器 場景 攝影機
+        var renderer, scene, camera;
+        //群組
+        var group;
+        //3顆原子
+        var el1, el2, el3;
+
+        function init() {
+            //場景
+            scene = new THREE.Scene()
+            //霧效果(可製造景深差 距離5-50可觀測)
+            scene.fog = new THREE.Fog(0x090b33, 5, 50)
+            //加入渲染器
+            renderer = new THREE.WebGLRenderer( { alpha: true})
+            //場景大小
+            renderer.setSize(window.innerWidth, window.innerHeight)
+            //物件加上陰影
+            renderer.shadowMap.enable = true
+
+            //新增到body
+            // document.body.appendChild(renderer.domElement)
+
+            var atomSence = document.getElementById('atom');
+            atomSence.appendChild(renderer.domElement)
+
+            //新增攝影機(fov, aspect, near, far)
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100)
+            //設置相機xyz位子
+            camera.position.set(16, 10, 12)
+            //鏡頭指向場景定位 xyz 中心點 0 的位子
+            camera.lookAt(scene.position)
+
+            //物件群組
+            group = new THREE.Object3D()
+            scene.add(group)
+
+            // 群組球體
+            function generateBall(r, color, name, x, y, z) {
+                //圓形
+                var sphereGeometry = new THREE.SphereGeometry(r, 32, 32)
+                //材質
+                var sphereMaterial = new THREE.MeshLambertMaterial({
+                    color: color
+                })
+                // 組合 圓球+材質
+                var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
+
+                //給物件名稱
+                sphere.name = name
+                //預設放在0位子
+                sphere.position.set(x || 0, y || 0,z || 0)
+                group.add(sphere)
+            }
+
+            // generateBall(5,"#f24","ball")
+            // generateBall(5,"#00ffc3","ball1",-5)
+            // generateBall(5,"#6a00ff","ball2",5)
+            var radius = 2
+            var stepdiv = 4
+            var dd = true
+
+            for(var angle1 = 0; angle1 < Math.PI*2; angle1+=Math.PI/stepdiv){
+                for (var angle2 = 0; angle2 < Math.PI * 2; angle2 += Math.PI / stepdiv) {
+                    let layerRadius = Math.cos(angle1)*radius
+                    let ballColor = dd?"#d3ff26":"#00ffd0"
+
+                    generateBall(0.9,ballColor,"atom",
+                        layerRadius*Math.cos(angle2),
+                        radius*Math.sin(angle1),
+                        layerRadius*Math.sin(angle2)
+                    )
+                    dd=!dd
+                }
+
+                dd=!dd
+            }
+
+
+
+
+
+            //光源 環境光
+            var ambientlight = new THREE.AmbientLight("#fff")
+            scene.add(ambientlight)
+
+            //DirectionalLight( 顏色, 強度 )
+            var directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+            scene.add(directionalLight)
+
+            //聚光燈
+            var spotLight = new THREE.SpotLight({
+                color: '#fff'
+            })
+            spotLight.position.set(-15, 20, 10)
+            spotLight.CastShadow = true
+            scene.add(spotLight)
+
+            //旋轉控制攝影機
+            cameraControl = new THREE.OrbitControls(camera, renderer.domElement);
+
+
+
+        }
+        init()
+
+        //RWD響應 瀏覽器視窗
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize( window.innerWidth, window.innerHeight );
+        }
+
+
+        //渲染到場景
+        function render() {
+            renderer.render(scene, camera)
+            cameraControl.update()
+            requestAnimationFrame(render)
+        }
+        render()
+
+
+    </script>
+</body>
+
+</html>

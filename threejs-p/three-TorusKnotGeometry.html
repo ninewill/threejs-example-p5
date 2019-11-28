@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>three-p1</title>
+    <style>
+        html,body{
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="infoe"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/107/three.min.js"></script>
+    <!-- 控制旋轉攝影機 js -->
+    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        //攝影機 / 場景 / 渲染器
+        var camera, scene, renderer;
+        // 形狀 / 材質 / 物件
+        var geometry, material, mesh;
+        var light;
+
+        //初始化場景
+        function init(){
+            scene = new THREE.Scene();
+            //建立渲染器 WebGL 畫圖GPU 運算
+            renderer = new THREE.WebGLRenderer({
+                //抗鋸齒
+                antialias: true
+            })
+            //視窗 寬,高
+            renderer.setSize(window.innerWidth,window.innerHeight)
+            //canvas放進div
+			document.getElementById("infoe").appendChild(renderer.domElement);
+            // document.body.appendChild(renderer.domElement)
+
+
+            //定義形狀
+            geometry = new THREE.TorusKnotGeometry( 0.1, 0.02, 150, 0.3);
+            //材質係
+            meterial = new THREE.MeshNormalMaterial({
+                wireframe: true
+            });
+            // meterial = new THREE.MeshPhysicalMaterial({
+            //     color: 0xff0000,
+            // });
+            
+
+            //組合成物件 geometry + meterial
+            mesh = new THREE.Mesh(geometry, meterial)
+            scene.add(mesh)
+
+            //光源打光方式
+            //光源 環境光
+            
+            var ambientlight = new THREE.AmbientLight("#fff")
+            scene.add(ambientlight)
+
+            light = new THREE.PointLight( 0x00ffff, 100, 100 )
+            light.position.set( 50, 50, 50)
+            scene.add(light)
+
+            camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 10);
+            camera.position.z = 0.2
+
+            //控制攝影鏡頭
+            cameraControl = new THREE.OrbitControls(camera, renderer.domElement)
+        }
+
+        init()
+
+        //視窗響應
+        window.addEventListener( 'resize', onWindowResize, false );
+        function onWindowResize(){
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+        }
+
+        function render(){
+            // mesh.position.y += 0.001
+            mesh.rotation.x += 0.02
+            mesh.rotation.z += 0.02
+            // light.position.y += 0.1
+            renderer.render(scene,camera)
+            requestAnimationFrame(render)
+        }
+        render()
+    </script>
+</body>
+</html>
